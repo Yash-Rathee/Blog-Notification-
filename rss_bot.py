@@ -249,7 +249,7 @@ def resolve_final_url(url, max_hops=5):
 def send_entry(entry):
     img = extract_first_image(entry)
     caption = build_caption(entry)
-    link = entry.get("link", "") or ""
+    raw_link = entry.get("link", "") or ""
     link = resolve_final_url(raw_link)
     if img and SEND_PHOTOS:
         ok, resp = send_telegram_photo_with_button(img, caption, link)
@@ -307,4 +307,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
