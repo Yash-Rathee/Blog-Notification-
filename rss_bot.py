@@ -214,10 +214,43 @@ def send_plain_text_message(text):
     except Exception as e:
         return False, str(e)
 
+def resolve_final_url(url, max_hops=5):
+    """
+    Resolve redirects and return the final URL. Falls back to original on error.
+    This performs a HEAD first (faster) and a GET if HEAD is rejected.
+    """
+    if not url:
+        return url
+    try:
+        # try HEAD first (follows redirects)
+        r = requests.head(url, allow_redirects=True, timeout=TIMEOUT)
+        final = r.url if r.status_code < 400 and r.url else None
+        if final:
+            return final
+    except Exception:
+        # ignore and try GET below
+        pass
+
+    try:
+        r = requests.get(url, stream=True, allow_redirects=True, timeout=TIMEOUT)
+        final = r.url if r.status_code < 400 and r.url else None
+        try:
+            r.close()
+        except Exception:
+            pass
+        if final:
+            return final
+    except Exception:
+        pass
+    # fallback to the original URL if resolution fails
+    return url
+
+
 def send_entry(entry):
     img = extract_first_image(entry)
     caption = build_caption(entry)
     link = entry.get("link", "") or ""
+    link = resolve_final_url(raw_link)
     if img and SEND_PHOTOS:
         ok, resp = send_telegram_photo_with_button(img, caption, link)
         if ok:
@@ -274,3 +307,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
