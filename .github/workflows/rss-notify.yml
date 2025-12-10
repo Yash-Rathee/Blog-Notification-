@@ -2,7 +2,7 @@ name: RSS -> Telegram notifier
 
 on:
   schedule:
-    - cron: '*/60 * * * *'   # run every 60 minutes
+    - cron: '*/30 * * * *'   # run every 30 minutes
   workflow_dispatch:
 
 permissions:
